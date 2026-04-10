@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alimony Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1410;
+    --paper: #f5f0e8;
+    --cream: #ede7d9;
+    --accent: #8b4513;
+    --accent-light: #c4783a;
+    --gold: #c9a84c;
+    --muted: #8a7e72;
+    --border: #c8bfb0;
+    --result-bg: #1a1410;
+    --result-text: #f5f0e8;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 60px;
+    background-image:
+      radial-gradient(ellipse at 20% 10%, rgba(201,168,76,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 90%, rgba(139,69,19,0.06) 0%, transparent 50%);
+  }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    margin-bottom: 44px;
+    animation: fadeDown 0.7s ease both;
+  }
+  .header-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(38px, 6vw, 58px);
+    color: var(--ink);
+    line-height: 1.05;
+  }
+  .header h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  .header-rule {
+    margin: 16px auto 0;
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  /* ── Layout ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 28px;
+    width: 100%;
+    max-width: 680px;
+    align-items: start;
+  }
+
+  /* ── Card ── */
+  .card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 36px 36px 28px;
+    box-shadow: 0 4px 24px rgba(26,20,16,0.07);
+    animation: fadeUp 0.65s ease both;
+  }
+  .card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Fields ── */
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 24px;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 520px) { .field-grid { grid-template-columns: 1fr; } }
+
+  .field { display: flex; flex-direction: column; gap: 7px; }
+  .field-full { grid-column: 1 / -1; }
+
+  label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .input-prefix {
+    position: absolute;
+    left: 14px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    color: var(--muted);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  input[type="number"], input[type="range"] {
+    width: 100%;
+    height: 48px;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+  input[type="number"] {
+    padding: 0 14px 0 32px;
+  }
+  input[type="number"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(139,69,19,0.1);
+  }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { opacity: 0.4; }
+
+  /* Range slider */
+  .range-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .range-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .range-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    color: var(--accent);
+  }
+  input[type="range"] {
+    height: 4px;
+    padding: 0;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--accent);
+    border-radius: 50%;
+    margin-top: -7px;
+    box-shadow: 0 2px 6px rgba(139,69,19,0.35);
+    transition: transform 0.15s;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+  /* Dependents stepper */
+  .stepper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    height: 48px;
+  }
+  .stepper-btn {
+    width: 48px;
+    height: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    color: var(--accent);
+    font-family: 'Cormorant Garamond', serif;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .stepper-btn:hover { background: rgba(139,69,19,0.08); }
+  .stepper-val {
+    flex: 1;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 16px;
+    color: var(--ink);
+  }
+
+  /* ── Pill Selector (Religion & Living Standard) ── */
+  .pill-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+  .pill-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 13px;
+    background: var(--cream);
+    border: 1.5px solid var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.16s;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    user-select: none;
+    white-space: nowrap;
+  }
+  .pill-btn:hover {
+    border-color: var(--accent-light);
+    color: var(--accent);
+    background: #fff;
+  }
+  .pill-btn.active {
+    border-color: var(--accent);
+    background: rgba(139,69,19,0.07);
+    color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(139,69,19,0.08);
+  }
+  .pill-icon { font-size: 14px; line-height: 1; }
+
+  .info-box {
+    margin-top: 8px;
+    padding: 9px 13px;
+    background: var(--cream);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 3px 3px 0;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.6;
+    display: none;
+  }
+  .info-box.visible { display: block; }
+  .btn-execute {
+    width: 100%;
+    height: 52px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: 3px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.2s, transform 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .btn-execute::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(201,168,76,0.15) 100%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .btn-execute:hover { background: var(--accent); }
+  .btn-execute:hover::before { opacity: 1; }
+  .btn-execute:active { transform: scale(0.98); }
+  .btn-icon { font-size: 16px; }
+
+  /* ── Result Panel ── */
+  .result-panel {
+    margin-top: 28px;
+    border-radius: 3px;
+    overflow: hidden;
+    display: none;
+    animation: fadeUp 0.4s ease both;
+  }
+  .result-panel.visible { display: block; }
+  .result-header {
+    background: var(--result-bg);
+    color: var(--result-text);
+    padding: 20px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .result-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+  .result-amount {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 42px;
+    font-weight: 300;
+    color: #fff;
+    line-height: 1;
+  }
+  .result-period {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    padding-bottom: 6px;
+  }
+  .result-breakdown {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 20px 28px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 520px) { .result-breakdown { grid-template-columns: 1fr 1fr; } }
+  .result-item { display: flex; flex-direction: column; gap: 4px; }
+  .result-item-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .result-item-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    color: var(--ink);
+  }
+  .result-note {
+    background: rgba(139,69,19,0.06);
+    border-left: 3px solid var(--accent-light);
+    padding: 12px 20px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-top: 1px;
+  }
+
+
+
+  /* ── Animations ── */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes scanline {
+    0%   { top: 0%; }
+    100% { top: 100%; }
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.8; }
+  }
+  @keyframes resultReveal {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Disclaimer ── */
+  .disclaimer {
+    margin-top: 36px;
+    max-width: 980px;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    opacity: 0.7;
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <p class="header-eyebrow">Legal Financial Tool</p>
+  <h1>Alimony <em>Calculator</em></h1>
+  <div class="header-rule"></div>
+</header>
+
+<div class="layout">
+
+  <!-- ── Left: Form ── -->
+  <div class="card">
+    <p class="card-title">Financial Details</p>
+
+    <div class="field-grid">
+
+      <!-- Husband Salary -->
+      <div class="field">
+        <label for="husband-sal">Husband's Monthly Salary</label>
+        <div class="input-wrap">
+          <span class="input-prefix">₹</span>
+          <input type="number" id="husband-sal" placeholder="0" min="0" step="1000">
+        </div>
+      </div>
+
+      <!-- Wife Salary -->
+      <div class="field">
+        <label for="wife-sal">Wife's Monthly Salary</label>
+        <div class="input-wrap">
+          <span class="input-prefix">₹</span>
+          <input type="number" id="wife-sal" placeholder="0" min="0" step="1000">
+        </div>
+      </div>
+
+      <!-- Dependents -->
+      <div class="field">
+        <label>Number of Dependents</label>
+        <div class="stepper">
+          <button class="stepper-btn" id="dep-minus">−</button>
+          <span class="stepper-val" id="dep-val">0</span>
+          <button class="stepper-btn" id="dep-plus">+</button>
+        </div>
+      </div>
+
+      <!-- Marriage Years -->
+      <div class="field">
+        <label>Years of Marriage</label>
+        <div class="range-wrap">
+          <div class="range-header">
+            <label style="letter-spacing:0">Duration</label>
+            <span class="range-value" id="years-disp">5 yrs</span>
+          </div>
+          <input type="range" id="marriage-years" min="1" max="40" value="5">
+        </div>
+      </div>
+
+      <!-- Religion -->
+      <div class="field field-full">
+        <label>Religion / Applicable Law</label>
+        <div class="pill-group" id="religion-grid">
+          <button class="pill-btn active" data-religion="hindu"><span class="pill-icon">🕉️</span>Hindu</button>
+          <button class="pill-btn" data-religion="muslim"><span class="pill-icon">☪️</span>Muslim</button>
+          <button class="pill-btn" data-religion="christian"><span class="pill-icon">✝️</span>Christian</button>
+          <button class="pill-btn" data-religion="parsi"><span class="pill-icon">🔥</span>Parsi</button>
+        </div>
+        <div class="info-box visible" id="rel-law-text">
+          <strong>Hindu Marriage Act, 1955 (S.25)</strong> — Either spouse may claim permanent alimony. Court considers standard of living, income, and conduct. Typically 1/3rd of husband's net income.
+        </div>
+      </div>
+
+      <!-- Living Standard -->
+      <div class="field field-full">
+        <label>Standard of Living During Marriage</label>
+        <div class="pill-group" id="living-grid">
+          <button class="pill-btn" data-living="subsistence"><span class="pill-icon">🏠</span>Subsistence</button>
+          <button class="pill-btn active" data-living="modest"><span class="pill-icon">🏡</span>Modest</button>
+          <button class="pill-btn" data-living="comfortable"><span class="pill-icon">🏘️</span>Comfortable</button>
+          <button class="pill-btn" data-living="affluent"><span class="pill-icon">🏛️</span>Affluent</button>
+          <button class="pill-btn" data-living="luxury"><span class="pill-icon">💎</span>Luxury</button>
+        </div>
+        <div class="info-box visible" id="living-info-text">
+          <strong>Modest</strong> — Standard middle-class lifestyle. Courts apply a neutral multiplier. Alimony aims to maintain reasonable continuity of living standard.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Execute -->
+
+    <button class="btn-execute" id="btn-calc">
+      <span class="btn-icon">⚖️</span>
+      Calculate Alimony
+    </button>
+
+    <!-- Result -->
+    <div class="result-panel" id="result-panel">
+      <div class="result-header">
+        <div>
+          <p class="result-label">Estimated Monthly Alimony</p>
+          <p class="result-amount" id="res-amount">₹0</p>
+        </div>
+        <p class="result-period">/month</p>
+      </div>
+      <div class="result-breakdown">
+        <div class="result-item">
+          <p class="result-item-label">Income Gap</p>
+          <p class="result-item-val" id="res-gap">—</p>
+        </div>
+        <div class="result-item">
+          <p class="result-item-label">Duration</p>
+          <p class="result-item-val" id="res-duration">—</p>
+        </div>
+        <div class="result-item">
+          <p class="result-item-label">Child Support</p>
+          <p class="result-item-val" id="res-child">—</p>
+        </div>
+        <div class="result-item">
+          <p class="result-item-label">Annual Total</p>
+          <p class="result-item-val" id="res-annual">—</p>
+        </div>
+        <div class="result-item">
+          <p class="result-item-label">Alimony Period</p>
+          <p class="result-item-val" id="res-period">—</p>
+        </div>
+        <div class="result-item">
+          <p class="result-item-label">Lifetime Est.</p>
+          <p class="result-item-val" id="res-lifetime">—</p>
+        </div>
+      </div>
+      <div class="result-note" id="result-note">
+        ⚠️ This estimate is based on general guidelines and the <strong>1/3rd income rule</strong> commonly referenced in Indian family courts. Actual alimony depends on jurisdiction, lifestyle, health, and judicial discretion. Consult a qualified family lawyer.
+      </div>
+    </div>
+  </div>
+
+
+</div>
+
+<p class="disclaimer">For informational purposes only · Not legal advice · Consult a licensed family law attorney</p>
+
+<script>
+  // ── Religion data
+  const religions = {
+    hindu:    { label:'Hindu Marriage Act, 1955 (S.25)', desc:'Either spouse may claim permanent alimony. Court considers standard of living, income, and conduct. Typically <strong>1/3rd</strong> of husband\'s net income.', incomeRatio:1/3, childPerDependent:3000, periodMultiplier:0.65, note:'⚖️ Under <strong>Hindu Marriage Act §25</strong>, alimony is discretionary. The 1/3rd rule is a guideline; remarriage terminates alimony.' },
+    muslim:   { label:'Muslim Personal Law / CrPC §125', desc:'Iddat period (≈3 months) under Muslim Personal Law. <strong>CrPC §125</strong> & Supreme Court rulings (2024) extend maintenance rights beyond iddat.', incomeRatio:0.25, childPerDependent:3500, periodMultiplier:0.30, note:'⚖️ Under <strong>Muslim Personal Law</strong>, Mehr & iddat maintenance apply. However, <strong>CrPC §125</strong> and the 2024 SC ruling affirm extended maintenance rights. Consult a lawyer.' },
+    christian:{ label:'Indian Divorce Act, 1869 (S.36–37)', desc:'Alimony pendente lite and permanent alimony available. Courts weigh income, assets, and conduct. Typically <strong>1/5th to 1/3rd</strong> of husband\'s income.', incomeRatio:0.28, childPerDependent:3000, periodMultiplier:0.60, note:'⚖️ Under <strong>Indian Divorce Act §37</strong>, courts have broad discretion. Some interpretations cap alimony at 1/5th of average income; this calculator uses a weighted estimate.' },
+    parsi:    { label:'Parsi Marriage & Divorce Act, 1936 (S.40)', desc:'Alimony fully discretionary. Courts balance both parties\' income, conduct, and standard of living. Similar to Hindu law in quantum.', incomeRatio:0.30, childPerDependent:3000, periodMultiplier:0.60, note:'⚖️ Under <strong>Parsi Marriage & Divorce Act §40</strong>, alimony is fully discretionary. This estimate uses a 30% income-gap approach.' }
+  };
+
+  // ── Living standard data
+  const livingStandards = {
+    subsistence: { label:'Subsistence', desc:'Bare minimum lifestyle. Courts focus on basic needs only. Lower multiplier applied — alimony aims to cover essential expenses.', multiplier: 0.80 },
+    modest:      { label:'Modest', desc:'Standard middle-class lifestyle. Courts apply a neutral multiplier. Alimony aims to maintain reasonable continuity of living standard.', multiplier: 1.00 },
+    comfortable: { label:'Comfortable', desc:'Upper-middle-class lifestyle with non-essential comforts. Courts factor in maintained amenities. Moderate upward adjustment applied.', multiplier: 1.20 },
+    affluent:    { label:'Affluent', desc:'High lifestyle with assets, domestic help, private schooling. Courts expect alimony to reflect significant standard. Higher multiplier applied.', multiplier: 1.45 },
+    luxury:      { label:'Luxury', desc:'Elite lifestyle — property, travel, premium schooling. Courts have awarded substantially higher alimony to preserve lifestyle continuity.', multiplier: 1.75 }
+  };
+
+  let selectedReligion = 'hindu';
+  let selectedLiving   = 'modest';
+
+  const relLawText    = document.getElementById('rel-law-text');
+  const livingInfoText = document.getElementById('living-info-text');
+
+  document.getElementById('religion-grid').addEventListener('click', e => {
+    const btn = e.target.closest('.pill-btn');
+    if (!btn) return;
+    document.querySelectorAll('#religion-grid .pill-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedReligion = btn.dataset.religion;
+    const r = religions[selectedReligion];
+    relLawText.innerHTML = `<strong>${r.label}</strong> — ${r.desc}`;
+    relLawText.classList.add('visible');
+  });
+
+  document.getElementById('living-grid').addEventListener('click', e => {
+    const btn = e.target.closest('.pill-btn');
+    if (!btn) return;
+    document.querySelectorAll('#living-grid .pill-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedLiving = btn.dataset.living;
+    const l = livingStandards[selectedLiving];
+    livingInfoText.innerHTML = `<strong>${l.label}</strong> — ${l.desc}`;
+    livingInfoText.classList.add('visible');
+  });
+
+  // ── Dependents stepper
+  let dependents = 0;
+  const depVal = document.getElementById('dep-val');
+  document.getElementById('dep-minus').addEventListener('click', () => {
+    if (dependents > 0) { dependents--; depVal.textContent = dependents; }
+  });
+  document.getElementById('dep-plus').addEventListener('click', () => {
+    if (dependents < 10) { dependents++; depVal.textContent = dependents; }
+  });
+
+  // ── Years range
+  const rangeEl   = document.getElementById('marriage-years');
+  const yearsDisp = document.getElementById('years-disp');
+  rangeEl.addEventListener('input', () => { yearsDisp.textContent = rangeEl.value + ' yrs'; });
+
+  // ── Format
+  function fmt(n) {
+    if (n >= 100000) return '₹' + (n/100000).toFixed(1) + 'L';
+    if (n >= 1000)   return '₹' + (n/1000).toFixed(1) + 'K';
+    return '₹' + Math.round(n);
+  }
+  function fmtFull(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
+
+  // ── Calculate
+  document.getElementById('btn-calc').addEventListener('click', () => {
+    const hSal  = parseFloat(document.getElementById('husband-sal').value) || 0;
+    const wSal  = parseFloat(document.getElementById('wife-sal').value)   || 0;
+    const years = parseInt(rangeEl.value);
+    const rel   = religions[selectedReligion];
+    const liv   = livingStandards[selectedLiving];
+
+    if (hSal <= 0) { alert("Please enter the husband's salary."); return; }
+
+    const gap = Math.max(0, hSal - wSal);
+
+    let yearFactor = 1.0;
+    if      (years <= 5)  yearFactor = 0.70;
+    else if (years <= 10) yearFactor = 0.85;
+    else if (years <= 20) yearFactor = 1.00;
+    else if (years <= 30) yearFactor = 1.15;
+    else                  yearFactor = 1.25;
+
+    const baseAlimony   = (gap * rel.incomeRatio) * yearFactor * liv.multiplier;
+    const childSupport  = dependents * rel.childPerDependent;
+    const totalMonthly  = baseAlimony + childSupport;
+    const alimonyPeriod = Math.max(1, Math.round(years * rel.periodMultiplier));
+    const annual        = totalMonthly * 12;
+    const lifetime      = annual * alimonyPeriod;
+
+    document.getElementById('res-amount').textContent   = fmtFull(totalMonthly);
+    document.getElementById('res-gap').textContent      = fmt(gap);
+    document.getElementById('res-duration').textContent = years + ' yrs';
+    document.getElementById('res-child').textContent    = fmtFull(childSupport);
+    document.getElementById('res-annual').textContent   = fmt(annual);
+    document.getElementById('res-period').textContent   = alimonyPeriod + ' yrs';
+    document.getElementById('res-lifetime').textContent = fmt(lifetime);
+    document.getElementById('result-note').innerHTML    = rel.note + ` Living standard (<em>${liv.label}</em>) adjustment: ×${liv.multiplier}.`;
+
+    const panel = document.getElementById('result-panel');
+    panel.classList.add('visible');
+    panel.style.animation = 'none';
+    requestAnimationFrame(() => { panel.style.animation = 'resultReveal 0.4s ease both'; });
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+
+
+</script>
+</body>
+</html>
